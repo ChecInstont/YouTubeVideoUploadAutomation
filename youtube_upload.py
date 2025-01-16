@@ -1,3 +1,4 @@
+"""Upload Videos Through Youtube API"""
 import os
 import google_auth_httplib2
 import google_auth_oauthlib
@@ -7,12 +8,10 @@ import googleapiclient.http
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
 
-def authenticate_youtube():
+def authenticate_youtube(client_secrets_file):
+    """Authenticate Youtube UploadRequest"""
     os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
-    # Load client secrets file, put the path of your file
-    client_secrets_file = "app\credentials.json"
-    
     flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
         client_secrets_file, SCOPES)
     credentials = flow.run_local_server()
@@ -22,21 +21,8 @@ def authenticate_youtube():
 
     return youtube
 
-def upload_video(youtube):
-    request_body = {
-        "snippet": {
-            "categoryId": "22",
-            "title": "Uploaded from Python",
-            "description": "This is the most awsome description ever",
-            "tags": ["test","python", "api" ]
-        },
-        "status":{
-            "privacyStatus": "private"
-        }
-    }
-
-    # put the path of the video that you want to upload
-    media_file = "app\TripAnime.mp4"
+def upload_video(youtube,media_file,request_body):
+    """Upload Video To YouTube via API"""
 
     request = youtube.videos().insert(
         part="snippet,status",
@@ -44,7 +30,7 @@ def upload_video(youtube):
         media_body=googleapiclient.http.MediaFileUpload(media_file, chunksize=-1, resumable=True)
     )
 
-    response = None 
+    response = None
 
     while response is None:
         status, response = request.next_chunk()
@@ -52,7 +38,5 @@ def upload_video(youtube):
             print(f"Upload {int(status.progress()*100)}%")
 
         print(f"Video uploaded with ID: {response['id']}")
-
-if __name__ == "__main__":
-    youtube = authenticate_youtube()
-    upload_video(youtube)
+        with open("status_report.txt","w",encoding="utf-8") as f:
+            f.write(f"Video uploaded with ID: {response['id']}")
