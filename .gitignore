@@ -141,6 +141,7 @@ cython_debug/
 *.jpeg
 *.csv
 *.xlsx
+*.mp4
 
 
 # Allow Files
